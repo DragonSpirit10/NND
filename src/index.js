@@ -14,13 +14,15 @@ client.on('ready', (c) => {
     console.log(`✅ Logged in as ${c.user.tag} `);
 });
 
-client.on('messageCreate', (msg) => {
-    if (msg.content === 'ping') {
-        msg.reply('Pong!');
+client.on('interactionCreate', (interaction) => {
+    if (!interaction.isCommand()) return;
+
+    const { commandName } = interaction;
+
+    if (commandName === 'items') {
+
     }
 });
 
 
-client.login(
-  process.env.TOKEN,
-);
+client.login(process.env.TOKEN,);
