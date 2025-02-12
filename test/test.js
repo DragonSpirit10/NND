@@ -1,3 +1,5 @@
-const { itemsFilter } = require("../src/Filter/itemsFilter.js");
+const { itemsFilterNb, formatOptionList } = require("../src/Filter/itemsFilter.js");
 
-console.log(itemsFilter("Armor", 10));
+listitem = itemsFilterNb("Rifle", 50);
+listitemFormat = formatOptionList(listitem)
+console.log(listitemFormat);

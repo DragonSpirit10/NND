@@ -1,28 +1,16 @@
 require("dotenv").config();
-const { Client, IntentsBitField } = require("discord.js");
+const { Client } = require("discord.js");
+const { CommandKit } = require('commandkit');
 
 const client = new Client({
-  intents: [
-    IntentsBitField.Flags.Guilds,
-    IntentsBitField.Flags.GuildMembers,
-    IntentsBitField.Flags.GuildMessages,
-    IntentsBitField.Flags.MessageContent,
-  ],
+  intents: ['Guilds', 'GuildMembers', 'GuildMessages', 'MessageContent'],
 });
 
-client.on('ready', (c) => {
-    console.log(`✅ Logged in as ${c.user.tag} `);
+new CommandKit({
+  client,
+  commandsPath: `${__dirname}/commands`,
+  eventsPath: `${__dirname}/events`,
+  bulkRegister: true,
 });
-
-client.on('interactionCreate', (interaction) => {
-    if (!interaction.isCommand()) return;
-
-    const { commandName } = interaction;
-
-    if (commandName === 'items') {
-
-    }
-});
-
 
 client.login(process.env.TOKEN,);
