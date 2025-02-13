@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require('discord.js');
-const items = require("../data/items.json");
 const { itemsFilterNb, findItem, objToString } = require("../Filter/itemsFilter.js");
 
 module.exports = {
