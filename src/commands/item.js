@@ -1,5 +1,6 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { itemsFilterNb, findItem, objToString } = require("../Filter/itemsFilter.js");
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { itemsFilterNb, findItem } = require("../Fonctions/itemsFilter.js");
+const { createItemEmbed } = require("../Fonctions/embed.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,19 +13,17 @@ module.exports = {
         .setRequired(true)
         .setAutocomplete(true)
     ),
+  run: ({ interaction, client, handler }) => {
+    const TargetFilter = interaction.options.getString('filtre');
 
-    run: ({ interaction, client, handler }) => {
-      const TargetFilter = interaction.options.getString('filtre');
+    const itemsfound = findItem(TargetFilter);
+    
+    if (!itemsfound) {
+      return interaction.reply("No item found.");
+    }
 
-      const itemsfound = findItem(TargetFilter);
-      
-      if (!itemsfound) {
-        return interaction.reply("No item found.");
-      }
-
-      return interaction.reply(`${itemsfound.name} (${itemsfound.source})` + "\n" + objToString(itemsfound));
-    },
-
+    return interaction.reply({ embeds: createItemEmbed(itemsfound) });
+  },
   autocomplete: ({ interaction, client, handler }) => {
     const focusedValue = interaction.options.getFocused(true);
 

@@ -41,16 +41,7 @@ function findItem(TargetFilter) {
   return itemsfound;
 }
 
-function objToString (obj) {
-  let str = '';
-  for (const [p, val] of Object.entries(obj)) {
-      str += `${p} :: ${val}\n`;
-  }
-  return str;
-}
-
 module.exports = {
   itemsFilterNb,
-  findItem,
-  objToString
+  findItem
 };

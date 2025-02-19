@@ -1,2 +1,7 @@
 .env
 node_modules
+data
+
+!data/items.json
+!data/items-base.json
+!data/fluff-items.json
