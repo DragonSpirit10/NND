@@ -6,7 +6,7 @@ function createItemEmbed(item, IsReprint = false) {
   const embed = new EmbedBuilder()
       .setTitle(item.name)
       .setColor(0x0099ff)
-      .setFooter({ text: `Source: ${item.source}, Page: ${item.page}` });
+      .setFooter({ text: `Source: ${formatSource(item.source)}, Page: ${item.page}` });
 
   if (item.fields) {
     for (const field of item.fields) {
@@ -29,16 +29,16 @@ function createItemEmbed(item, IsReprint = false) {
   
   if (item.focus) embed.addFields({ name: 'Focus', value: item.focus.join(', '), inline: true });
 
-  if (item.value) embed.addFields({ name: 'Value', value: item.value, inline: true });
+  if (item.value) embed.addFields({ name: 'Value', value: formatValue(item.value), inline: true });
 
   if (item.entries && item.entries.length) {
-      const description = item.entries.join('\n\n').replace(/\{@.*?\|.*?}/g, '');
+      const description = item.entries.join('\n\n')
       embed.setDescription(description.length > 4093 ? description.slice(0, 4093) + '...' : description); //max 4096 characters
   }
   
   // Case of reprinted item
   if (IsReprint) {
-    embed.setTitle(`Reprinted ${item.name}`);
+    embed.setTitle(`Reprinted in ${formatSource(item.source)} as :\n${item.name}`);
     return embed;
   }
   const arrayEmbed = [];
@@ -67,14 +67,6 @@ function createEmbedsFromItems(items) {
     return items.map(createItemEmbed);
 }
 
-function objToString (obj) {
-  let str = '';
-  for (const [p, val] of Object.entries(obj)) {
-      str += `${p} :: ${val}\n`;
-  }
-  return str;
-};
-
 function formatValue(value) {
   if (value % 10 == 0) {
     return value / 10 + "sp";
@@ -86,6 +78,35 @@ function formatValue(value) {
   return value + "cp";
 }
 
+function formatSource(source) {
+  switch(source) {
+    case "XPHB":
+      source = "PHB'24"
+      break;
+    case "XDMG":
+      source = "DMG'24"
+      break;
+    case "XMM":
+      source = "MM'25"
+      break;
+    default:
+      source = source;
+  }
+  return source;
+}
+
 module.exports = {
   createItemEmbed,
 }
+
+function objToString (obj) {
+  let str = '';
+  for (const [p, val] of Object.entries(obj)) {
+    if (typeof val === 'object') {
+      str += `${p} :: ${objToString(val)}`;
+      continue;
+    }
+      str += `${p} :: ${val}\n`;
+  }
+  return str;
+};

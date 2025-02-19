@@ -4,12 +4,12 @@ const { createItemEmbed } = require("../Fonctions/embed.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('item')
-    .setDescription('Give details about an item.')
+    .setName('monster')
+    .setDescription('Give details about a monster.')
     .addStringOption((option) =>
       option
         .setName('filtre')
-        .setDescription('The information the find item you want to know about.')
+        .setDescription('The information about the monster you want to know about.')
         .setRequired(true)
         .setAutocomplete(true)
     ),

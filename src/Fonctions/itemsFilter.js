@@ -1,7 +1,7 @@
 const items = require("../data/items.json");
 const baseItems = require("../data/items-base.json");
-const fluffitems = require("../data/fluff-items.json");
-const Fuse = require('fuse.js')
+//const fluffitems = require("../data/fluff-items.json");
+const Fuse = require('fuse.js');
 
 itemsLists = items.item.concat(baseItems.baseitem);
 
@@ -14,7 +14,7 @@ const fuseOptions = {
     "baseitem",
     "othernames"
   ],
-  threshold: 0.3,
+  threshold: 0.6,
   includeScore: true,
 }
 
