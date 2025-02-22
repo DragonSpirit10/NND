@@ -1,6 +1,6 @@
-const items = require("../data/items.json");
-const baseItems = require("../data/items-base.json");
-//const fluffitems = require("../data/fluff-items.json");
+const items = require("../../dataGit/items.json");
+const baseItems = require("../../dataGit/items-base.json");
+//const fluffitems = require("../dataGit/fluff-items.json");
 const Fuse = require('fuse.js');
 
 itemsLists = items.item.concat(baseItems.baseitem);

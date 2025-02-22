@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { itemsFilterNb, findItem } = require("../Fonctions/itemsFilter.js");
+const { itemsFilterNb, findItem } = require("../Fonctions/Filter/itemsFilter.js");
 const { createItemEmbed } = require("../Fonctions/embed.js");
 
 module.exports = {

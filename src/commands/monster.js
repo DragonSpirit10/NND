@@ -1,6 +1,5 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { itemsFilterNb, findItem } = require("../Fonctions/itemsFilter.js");
-const { createItemEmbed } = require("../Fonctions/embed.js");
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { bestiaryFilterNb, findMonster } = require("../Fonctions/Filter/monstreFilter.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,23 +15,27 @@ module.exports = {
   run: ({ interaction, client, handler }) => {
     const TargetFilter = interaction.options.getString('filtre');
 
-    const itemsfound = findItem(TargetFilter);
+    const monstersfound = findMonster(TargetFilter);
     
-    if (!itemsfound) {
-      return interaction.reply("No item found.");
+    if (!monstersfound) {
+      return interaction.reply("No monster found.");
     }
+    
+    const embed = new EmbedBuilder()
+    .setTitle(monstersfound.name)
+    .setColor("Random")
 
-    return interaction.reply({ embeds: createItemEmbed(itemsfound) });
+    return interaction.reply({ embeds: [embed] });
   },
   autocomplete: ({ interaction, client, handler }) => {
     const focusedValue = interaction.options.getFocused(true);
 
-    const filteredChoices = itemsFilterNb(focusedValue.value, 25);
+    const filteredChoices = bestiaryFilterNb(focusedValue.value, 25);
 
-    const results = filteredChoices.map((items) => {
+    const results = filteredChoices.map((monsters) => {
       return {
-        name: `${items.item.name} (${items.item.source})`,
-        value: items.item.name + "|" + items.item.source,
+        name: `${monsters.item.name} (${monsters.item.source})`,
+        value: monsters.item.name + "|" + monsters.item.source,
       };
     });
 

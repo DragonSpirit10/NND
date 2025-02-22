@@ -1,5 +1,3 @@
-const { itemsFilterNb, formatOptionList } = require("../src/Filter/itemsFilter.js");
+const { monstreFilter } = require("../../src/Fonctions/Filter/monstreFilter.js");
 
-listitem = itemsFilterNb("Rifle", 50);
-listitemFormat = formatOptionList(listitem)
-console.log(listitemFormat);
+console.log(monstreFilter("aa", 25))
