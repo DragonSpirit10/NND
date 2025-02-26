@@ -1,6 +1,20 @@
 const { EmbedBuilder } = require('discord.js');
 const { findItem } = require('./Filter/itemsFilter');
 
+function createItemEmbed(item, isReprint = false) {
+  const embedData = createEmbedObject(item, isReprint);
+  // TODO : Vérification de la taille de l'embed
+  const embed = createEmbedFromObject(embedData);
+  const arrayEmbed = [embed];
+  
+  if (item.reprintedAs) {
+      const reprintedAs = createItemEmbed(findItem(item.reprintedAs[0]), true);
+      arrayEmbed.push(reprintedAs[0]);
+  }
+  
+  return arrayEmbed;
+}
+
 function createEmbedObject(item, isReprint = false) {
   let embedData;
   try {
@@ -24,6 +38,16 @@ function createEmbedObject(item, isReprint = false) {
   }
 
   return embedData;
+}
+
+function createEmbedFromObject(embedData) {
+  const embed = new EmbedBuilder()
+      .setTitle(embedData.title)
+      .setColor(embedData.color)
+      .setFooter({ text: embedData.footer })
+      .setDescription(embedData.description);
+  embedData.fields.forEach(field => embed.addFields(field));
+  return embed;
 }
 
 function generateDescription(item) {
@@ -76,27 +100,34 @@ function generateFields(item) {
     return fields;
 }
 
-function createEmbedFromObject(embedData) {
-    const embed = new EmbedBuilder()
-        .setTitle(embedData.title)
-        .setColor(embedData.color)
-        .setFooter({ text: embedData.footer })
-        .setDescription(embedData.description);
-    embedData.fields.forEach(field => embed.addFields(field));
-    return embed;
-}
+function addItemFields(embed, item) {
+  const fieldMappings = {
+      value: (item) => ({ name: 'Value', value: formatValue(item.value), inline: true }),
+      ac: (item) => ({ name: 'Armor Class', value: `${item.ac}`, inline: true }),
+      stealth: (item) => ({ name: 'Stealth Disadvantage', value: item.stealth ? 'Yes' : 'No', inline: true }),
+      weight: (item) => ({ name: 'Weight', value: `${item.weight} lb`, inline: true }),
+      range: (item) => ({ name: 'Range', value: item.range, inline: true }),
+      damage: (item) => ({ name: 'Damage', value: item.damage, inline: true }),
+      properties: (item) => ({ name: 'Properties', value: item.properties.join(', '), inline: true }),
+      reqAttune: (item) => ({ name: 'Requires Attunement', value: item.reqAttune ? 'Yes' : 'No', inline: true }),
+      bonusWeapon: (item) => ({ name: 'Attack Bonus', value: `${item.bonusWeapon}`, inline: true }),
+      dmg1: (item) => ({ name: 'Damage', value: `${item.dmg1} ${item.dmgType}`, inline: true }),
+      dmg2: (item) => ({ name: 'Versatile Damage', value: `${item.dmg2} ${item.dmgType}`, inline: true }),
+      light: (item) => ({
+          name: 'Light Emission',
+          value: item.light.map(light => `Bright: ${light.bright} ft, Dim: ${light.dim} ft`).join('\n'),
+          inline: true
+      }),
+      sentient: (item) => ({ name: 'Sentience', value: 'Yes', inline: true }),
+  };
 
-function createItemEmbed(item, isReprint = false) {
-    const embedData = createEmbedObject(item, isReprint);
-    const embed = createEmbedFromObject(embedData);
-    const arrayEmbed = [embed];
-    
-    if (item.reprintedAs) {
-        const reprintedAs = createItemEmbed(findItem(item.reprintedAs[0]), true);
-        arrayEmbed.push(reprintedAs[0]);
-    }
-    
-    return arrayEmbed;
+  Object.keys(fieldMappings).forEach(key => {
+      if (item[key] !== undefined) {
+          embed.addFields(fieldMappings[key](item));
+      }
+  });
+
+  return embed;
 }
 
 function formatValue(value) {
@@ -148,36 +179,6 @@ function transformEntriesToEmbedFields(entries) {
           return { name: entry.name, value: value || "N/A", inline: false };
       }
   }).filter(Boolean);
-}
-
-function addItemFields(embed, item) {
-  const fieldMappings = {
-      value: (item) => ({ name: 'Value', value: formatValue(item.value), inline: true }),
-      ac: (item) => ({ name: 'Armor Class', value: `${item.ac}`, inline: true }),
-      stealth: (item) => ({ name: 'Stealth Disadvantage', value: item.stealth ? 'Yes' : 'No', inline: true }),
-      weight: (item) => ({ name: 'Weight', value: `${item.weight} lb`, inline: true }),
-      range: (item) => ({ name: 'Range', value: item.range, inline: true }),
-      damage: (item) => ({ name: 'Damage', value: item.damage, inline: true }),
-      properties: (item) => ({ name: 'Properties', value: item.properties.join(', '), inline: true }),
-      reqAttune: (item) => ({ name: 'Requires Attunement', value: item.reqAttune ? 'Yes' : 'No', inline: true }),
-      bonusWeapon: (item) => ({ name: 'Attack Bonus', value: `${item.bonusWeapon}`, inline: true }),
-      dmg1: (item) => ({ name: 'Damage', value: `${item.dmg1} ${item.dmgType}`, inline: true }),
-      dmg2: (item) => ({ name: 'Versatile Damage', value: `${item.dmg2} ${item.dmgType}`, inline: true }),
-      light: (item) => ({
-          name: 'Light Emission',
-          value: item.light.map(light => `Bright: ${light.bright} ft, Dim: ${light.dim} ft`).join('\n'),
-          inline: true
-      }),
-      sentient: (item) => ({ name: 'Sentience', value: 'Yes', inline: true }),
-  };
-
-  Object.keys(fieldMappings).forEach(key => {
-      if (item[key] !== undefined) {
-          embed.addFields(fieldMappings[key](item));
-      }
-  });
-
-  return embed;
 }
 
 function getColorForRarity(rarity) {
