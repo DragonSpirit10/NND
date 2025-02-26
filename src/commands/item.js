@@ -13,7 +13,7 @@ module.exports = {
         .setRequired(true)
         .setAutocomplete(true)
     ),
-  run: ({ interaction, client, handler }) => {
+    run: async ({ interaction, client, handler }) => {
     const TargetFilter = interaction.options.getString('filtre');
 
     const itemsfound = findItem(TargetFilter);
@@ -22,7 +22,19 @@ module.exports = {
       return interaction.reply("No item found.");
     }
 
-    return interaction.reply({ embeds: createItemEmbed(itemsfound) });
+    const embeds = createItemEmbed(itemsfound);
+
+    embeds.forEach(embed => {
+      console.log(embed);
+    });
+
+    await interaction.reply({ embeds: [embeds[0]] });
+
+    if (embeds.length > 1) {
+      for (let i = 1; i < embeds.length; i++) {
+        await interaction.followUp({ embeds: [embeds[i]] });
+      }
+    }
   },
   autocomplete: ({ interaction, client, handler }) => {
     const focusedValue = interaction.options.getFocused(true);

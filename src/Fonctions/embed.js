@@ -1,145 +1,103 @@
 const { EmbedBuilder } = require('discord.js');
 const { findItem } = require('./Filter/itemsFilter');
 
-function createItemEmbed(item, IsReprint = false) {
-  const arrayEmbed = [];
-
+function createEmbedObject(item, isReprint = false) {
+  let embedData;
   try {
-    const embed = new EmbedBuilder()
-      .setTitle(item.name)
-      .setColor(getColorForRarity(item.rarity))
-      .setFooter({ text: `Source: ${formatSource(item.source)}, Page: ${item.page}` });
+    embedData = {
+      title: isReprint ? `Reprinted in ${formatSource(item.source)} as: ${item.name}` : item.name,
+      color: getColorForRarity(item.rarity),
+      footer: `Source: ${formatSource(item.source)}, Page: ${item.page}`,
+      description: generateDescription(item),
+      fields: generateFields(item)
+    };  
+  } catch (error) {
+    console.log(objToString(item));
+    console.log(error);
 
-    let description = '';
-  
-    if (item.type) {
-      const type = item.type.split("|");
-      switch (type[0]) {
-        case "M": description += "Melee "; break;
-        case "R": description += "Ranged Weapon "; break;
-        case "A": description += "Ammunition "; break;
-        case "S": description += "Shield "; break;
-        case "LA": description += "Light Armor "; break;
-        case "MA": description += "Medium Armor "; break;
-        case "HA": description += "Heavy Armor "; break;
-        case "G": description += "Gear "; break;
-        case "GV": description += "Generic Variant "; break;
-        case "P": description += "Potion "; break;
-        case "SC": description += "Scroll "; break;
-        case "W": description += "Wondrous Item "; break;
-        case "RD": description += "Rod "; break;
-        case "ST": description += "Staff "; break;
-        case "WD": description += "Wand "; break;
-        case "AT": description += "Artisan's Tools "; break;
-        case "INS": description += "Instrument "; break;
-        case "T": description += "Trade Good "; break;
-        case "EXP": description += "Explosive "; break;
-        case "GV": description += "Generic Variant "; break;
-        case "AF": description += "Ammunition "; break;
-        case "EM": description += "Emblem "; break;
-        case "INS": description += "Insignia "; break;
-        case "M": description += "Mount "; break;
-        case "SC": description += "Spellcasting Focus "; break;
-        case "TG": description += "Tool "; break;
-        case "MNT": description += "Mount "; break;
-        case "VEH": description += "Vehicle "; break;
-        case "SHP": description += "Vehicle (Sailing Ship) "; break;
-        case "SMP": description += "Vehicle (Simple Machine) "; break;
-        case "": description += "Unknown "; break;
-        default: description += type[0]; break;
-      }
+    embedData = {
+      title: "Error",
+      color: 0xE9362D,
+      footer: `Source: ${formatSource(item.source)}, Page: ${item.page}`,
+      description: "An error occured while generating the embed for this item.",
+      fields: []
     }
-
-    if (item.weaponCategory) {
-      description += `${item.weaponCategory} weapon `;
-    }
-
-    if (item.staff) {
-      description += "Staff";
-    }
-
-    if (item.wondrous) {
-      description += "Wondrous Item ";
-    }
-
-    if (item.rarity) {
-      if (item.rarity == "None") {
-        description += "rarity Nan ";
-      } else {
-        description += `${item.rarity} `;
-      }
-    }
-
-    if (item.reqAttune) {
-      description += `(${item.reqAttune ? 'Requires Attunement' : 'No Attunement Required'}) `;
-    }
-
-    embed.setDescription(description);
-    
-    if (item.value) embed.addFields({ name: 'Value', value: formatValue(item.value), inline: true });
-
-    if (item.ac) embed.addFields({ name: 'Armor Class', value: `${item.ac}`, inline: true });
-    
-    if (item.stealth) embed.addFields({ name: 'Stealth Disadvantage', value: item.stealth ? 'Yes' : 'No', inline: true });
-
-    if (item.weight) embed.addFields({ name: 'Weight', value: `${item.weight} lb`, inline: true});
-
-    if (item.range) embed.addFields({ name: 'Range', value: item.range, inline: true });
-
-    if (item.damage) embed.addFields({ name: 'Damage', value: item.damage, inline: true });
-
-    if (item.properties) embed.addFields({ name: 'Properties', value: item.properties.join(', '), inline: true });
-
-    if (item.reqAttune) embed.addFields({ name: 'Requires Attunement', value: item.reqAttune ? 'Yes' : 'No', inline: true });
-
-    if (item.bonusWeapon) embed.addFields({ name: 'Attack Bonus', value: item.bonusWeapon, inline: true });
-    
-    if (item.dmg1) embed.addFields({ name: 'Damage', value: `${item.dmg1} ${item.dmgType}`, inline: true });
-    
-    if (item.dmg2) embed.addFields({ name: 'Versatile Damage', value: `${item.dmg2} ${item.dmgType}`, inline: true });
-
-    if (item.light) {
-      const lightInfo = item.light.map(light => `Bright: ${light.bright} ft, Dim: ${light.dim} ft`).join('\n');
-      embed.addFields({ name: 'Light Emission', value: lightInfo, inline: true });
-    }
-
-    if (item.sentient) {
-      embed.addFields({ name: 'Sentience', value: 'Yes', inline: true });
-    }
-
-    transformToEmbedFields(item.entries).forEach(field => embed.addFields(field));
-
-    if (IsReprint) {
-      embed.setTitle(`Reprinted in ${formatSource(item.source)} as :\n${item.name}`);
-      return embed;
-    }
-
-    arrayEmbed.push(embed);
-
-    if (item.reprintedAs) {
-      const reprintedAs = createItemEmbed(findItem(item.reprintedAs[0]), true);
-      arrayEmbed.push(reprintedAs);
-    }
-  } catch(e) {
-    console.error(e);
-
-    const trueObjets = objToString(item)
-    
-    do {
-      const trueObjet = new EmbedBuilder().setTitle('Erreur True Object')
-        .setDescription(trueObjets.slice(0, 4090))
-        .setColor(0x0099ff);
-      arrayEmbed.push(trueObjet);
-      trueObjets = trueObjets.slice(4090);
-    } while (trueObjets.length > 4090);
   }
-  
-  return arrayEmbed;
+
+  return embedData;
 }
 
-function createEmbedsFromItems(items) {
-    if (!Array.isArray(items)) items = [items];
-    return items.map(createItemEmbed);
+function generateDescription(item) {
+    let description = '';
+    const typeMap = {
+        "M": "Melee ", "R": "Ranged Weapon ", "A": "Ammunition ", "S": "Shield ",
+        "LA": "Light Armor ", "MA": "Medium Armor ", "HA": "Heavy Armor ", "G": "Gear ",
+        "GV": "Generic Variant ", "P": "Potion ", "SC": "Scroll ", "W": "Wondrous Item ",
+        "RD": "Rod ", "ST": "Staff ", "WD": "Wand ", "AT": "Artisan's Tools ",
+        "INS": "Instrument ", "T": "Trade Good ", "EXP": "Explosive ", "AF": "Ammunition ",
+        "EM": "Emblem ", "MNT": "Mount ", "VEH": "Vehicle ", "SHP": "Vehicle (Sailing Ship) ",
+        "SMP": "Vehicle (Simple Machine) ", "TG": "Tool "
+    };
+    if (item.type) description += typeMap[item.type.split("|")[0]] || "Unknown ";
+    if (item.weaponCategory) description += `${item.weaponCategory} weapon `;
+    if (item.staff) description += "Staff ";
+    if (item.wondrous) description += "Wondrous Item ";
+    if (item.rarity) description += (item.rarity === "None" ? "rarity Nan " : `${item.rarity} `);
+    if (item.reqAttune) description += `(${item.reqAttune ? 'Requires Attunement' : 'No Attunement Required'}) `;
+    return description;
+}
+
+function generateFields(item) {
+    const fieldMappings = {
+      value: (item) => ({ name: 'Value', value: formatValue(item.value), inline: true }),
+      ac: (item) => ({ name: 'Armor Class', value: `${item.ac}`, inline: true }),
+      stealth: (item) => ({ name: 'Stealth Disadvantage', value: item.stealth ? 'Yes' : 'No', inline: true }),
+      weight: (item) => ({ name: 'Weight', value: `${item.weight} lb`, inline: true }),
+      range: (item) => ({ name: 'Range', value: item.range, inline: true }),
+      damage: (item) => ({ name: 'Damage', value: item.damage, inline: true }),
+      properties: (item) => ({ name: 'Properties', value: item.properties.join(', '), inline: true }),
+      reqAttune: (item) => ({ name: 'Requires Attunement', value: item.reqAttune ? 'Yes' : 'No', inline: true }),
+      bonusWeapon: (item) => ({ name: 'Attack Bonus', value: `${item.bonusWeapon}`, inline: true }),
+      dmg1: (item) => ({ name: 'Damage', value: `${item.dmg1} ${item.dmgType}`, inline: true }),
+      dmg2: (item) => ({ name: 'Versatile Damage', value: `${item.dmg2} ${item.dmgType}`, inline: true }),
+      light: (item) => ({
+          name: 'Light Emission',
+          value: item.light.map(light => `Bright: ${light.bright} ft, Dim: ${light.dim} ft`).join('\n'),
+          inline: true
+      }),
+      sentient: (item) => ({ name: 'Sentience', value: 'Yes', inline: true }),
+    };
+
+    let fields = Object.keys(fieldMappings).flatMap(key => (item[key] !== undefined ? [fieldMappings[key](item)] : []));
+  
+    if (item.entries) {
+      fields = fields.concat(transformEntriesToEmbedFields(item.entries));
+    }
+  
+    return fields;
+}
+
+function createEmbedFromObject(embedData) {
+    const embed = new EmbedBuilder()
+        .setTitle(embedData.title)
+        .setColor(embedData.color)
+        .setFooter({ text: embedData.footer })
+        .setDescription(embedData.description);
+    embedData.fields.forEach(field => embed.addFields(field));
+    return embed;
+}
+
+function createItemEmbed(item, isReprint = false) {
+    const embedData = createEmbedObject(item, isReprint);
+    const embed = createEmbedFromObject(embedData);
+    const arrayEmbed = [embed];
+    
+    if (item.reprintedAs) {
+        const reprintedAs = createItemEmbed(findItem(item.reprintedAs[0]), true);
+        arrayEmbed.push(reprintedAs[0]);
+    }
+    
+    return arrayEmbed;
 }
 
 function formatValue(value) {
@@ -189,14 +147,14 @@ function calculateEmbedLength(embed) {
   return total;
 }
 
-function transformToEmbedFields(entries) {
+function transformEntriesToEmbedFields(entries) {
   if (!Array.isArray(entries)) {
       throw new Error("Invalid data: Expected an array of entries.");
   }
 
   return entries.map(entry => {
       if (typeof entry === "string") {
-          return { name: "Description", value: entry, inline: false };
+          return { name: "", value: entry, inline: false };
       } else if (typeof entry === "object" && entry.type === "entries" && entry.name) {
           let value = "";
           
@@ -213,22 +171,52 @@ function transformToEmbedFields(entries) {
   }).filter(Boolean);
 }
 
+function addItemFields(embed, item) {
+  const fieldMappings = {
+      value: (item) => ({ name: 'Value', value: formatValue(item.value), inline: true }),
+      ac: (item) => ({ name: 'Armor Class', value: `${item.ac}`, inline: true }),
+      stealth: (item) => ({ name: 'Stealth Disadvantage', value: item.stealth ? 'Yes' : 'No', inline: true }),
+      weight: (item) => ({ name: 'Weight', value: `${item.weight} lb`, inline: true }),
+      range: (item) => ({ name: 'Range', value: item.range, inline: true }),
+      damage: (item) => ({ name: 'Damage', value: item.damage, inline: true }),
+      properties: (item) => ({ name: 'Properties', value: item.properties.join(', '), inline: true }),
+      reqAttune: (item) => ({ name: 'Requires Attunement', value: item.reqAttune ? 'Yes' : 'No', inline: true }),
+      bonusWeapon: (item) => ({ name: 'Attack Bonus', value: `${item.bonusWeapon}`, inline: true }),
+      dmg1: (item) => ({ name: 'Damage', value: `${item.dmg1} ${item.dmgType}`, inline: true }),
+      dmg2: (item) => ({ name: 'Versatile Damage', value: `${item.dmg2} ${item.dmgType}`, inline: true }),
+      light: (item) => ({
+          name: 'Light Emission',
+          value: item.light.map(light => `Bright: ${light.bright} ft, Dim: ${light.dim} ft`).join('\n'),
+          inline: true
+      }),
+      sentient: (item) => ({ name: 'Sentience', value: 'Yes', inline: true }),
+  };
+
+  Object.keys(fieldMappings).forEach(key => {
+      if (item[key] !== undefined) {
+          embed.addFields(fieldMappings[key](item));
+      }
+  });
+
+  return embed;
+}
+
+
 function getColorForRarity(rarity) {
   switch (rarity) {
-    case 'Common': return 0xCFCFCF;
-    case 'Uncommon': return 0x2ECC71;
-    case 'Rare': return 0x3498DB;
-    case 'Very Rare': return 0x8E44AD;
-    case 'Legendary': return 0xE67E22;
-    case 'Artifact': return 0xE9362D;
-    case 'Unknown': return 0x9B59B6;
+    case 'common': return 0xCFCFCF;
+    case 'uncommon': return 0x2ECC71;
+    case 'rare': return 0x3498DB;
+    case 'very rare': return 0x8E44AD;
+    case 'legendary': return 0xE67E22;
+    case 'artifact': return 0xE9362D;
+    case 'unknown': return 0x9B59B6;
     default: return 0x9B9B9B;
   }
 }
 
 module.exports = {
   createItemEmbed,
-  calculateEmbedLength,
 }
 
 function objToString (obj) {
