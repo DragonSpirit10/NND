@@ -12,9 +12,6 @@ function createEmbedObject(item, isReprint = false) {
       fields: generateFields(item)
     };  
   } catch (error) {
-    console.log(objToString(item));
-    console.log(error);
-
     embedData = {
       title: "Error",
       color: 0xE9362D,
@@ -22,6 +19,8 @@ function createEmbedObject(item, isReprint = false) {
       description: "An error occured while generating the embed for this item.",
       fields: []
     }
+
+    console.log(`Error while generating embed for ${item.name} (${item.source})`);
   }
 
   return embedData;
@@ -127,26 +126,6 @@ function formatSource(source) {
   return source;
 }
 
-/**
- * Calculates the total character length of an embed.
- * @param {Object} embed - The embed object.
- * @returns {number} The total character length.
- */
-function calculateEmbedLength(embed) {
-  let total = 0;
-  if (embed.title) total += embed.title.length;
-  if (embed.description) total += embed.description.length;
-  if (embed.footer && embed.footer.text) total += embed.footer.text.length;
-  if (embed.author && embed.author.name) total += embed.author.name.length;
-  if (Array.isArray(embed.fields)) {
-    embed.fields.forEach(field => {
-      if (field.name) total += field.name.length;
-      if (field.value) total += field.value.length;
-    });
-  }
-  return total;
-}
-
 function transformEntriesToEmbedFields(entries) {
   if (!Array.isArray(entries)) {
       throw new Error("Invalid data: Expected an array of entries.");
@@ -200,7 +179,6 @@ function addItemFields(embed, item) {
 
   return embed;
 }
-
 
 function getColorForRarity(rarity) {
   switch (rarity) {

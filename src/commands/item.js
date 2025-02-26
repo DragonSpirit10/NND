@@ -22,11 +22,9 @@ module.exports = {
       return interaction.reply("No item found.");
     }
 
-    const embeds = createItemEmbed(itemsfound);
+    console.log(`itemsfound : ${itemsfound.name} (${itemsfound.source}) | requested by ${interaction.user.tag} | At ${new Date().toLocaleString()}`);
 
-    embeds.forEach(embed => {
-      console.log(embed);
-    });
+    const embeds = createItemEmbed(itemsfound);
 
     await interaction.reply({ embeds: [embeds[0]] });
 

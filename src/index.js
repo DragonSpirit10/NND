@@ -6,6 +6,14 @@ const client = new Client({
   intents: ['Guilds', 'GuildMembers', 'GuildMessages', 'MessageContent'],
 });
 
+client.on('error', (error) => {
+  client.channels.fetch(process.env.CHANNEL_ID)
+    .then(channel => {
+      channel.send('(' + new Date().toLocaleString() + ') Bot catch a error: ' + error);
+    })
+    .catch(console.error);
+});
+
 new CommandKit({
   client,
   commandsPath: `${__dirname}/commands`,
