@@ -41,6 +41,11 @@ function findItem(TargetFilter) {
   return itemsfound;
 }
 
+function findBaseItem(nameSource) {
+  const [name, source] = nameSource.split("|");
+  return baseItems.baseitem.find((item) => item.name === name && item.source === source);
+}
+
 module.exports = {
   itemsFilterNb,
   findItem
