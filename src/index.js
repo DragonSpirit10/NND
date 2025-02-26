@@ -7,7 +7,7 @@ const client = new Client({
 });
 
 client.on('error', (error) => {
-  client.channels.fetch(process.env.CHANNEL_ID)
+  client.channels.fetch(process.env.STATUS_CHANNEL_ID)
     .then(channel => {
       channel.send('(' + new Date().toLocaleString() + ') Bot catch a error: ' + error);
     })
