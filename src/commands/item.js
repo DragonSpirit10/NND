@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { itemsFilterNb, findItem } = require("../Fonctions/Filter/itemsFilter.js");
-const { createItemEmbed } = require("../Fonctions/embed.js");
+const { createItemEmbed } = require("../Fonctions/embedItem.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -13,7 +13,7 @@ module.exports = {
         .setRequired(true)
         .setAutocomplete(true)
     ),
-    run: async ({ interaction, client, handler }) => {
+    run: async ({ interaction }) => {
     const TargetFilter = interaction.options.getString('filtre');
 
     const itemsfound = findItem(TargetFilter);
@@ -34,18 +34,21 @@ module.exports = {
       }
     }
   },
-  autocomplete: ({ interaction, client, handler }) => {
-    const focusedValue = interaction.options.getFocused(true);
+  autocomplete: async ({ interaction }) => {
+    try {
+      const focusedOption = interaction.options.getFocused(true);
 
-    const filteredChoices = itemsFilterNb(focusedValue.value, 25);
+      const filteredChoices = itemsFilterNb(focusedOption.value, 25);
 
-    const results = filteredChoices.map((items) => {
-      return {
-        name: `${items.item.name} (${items.item.source})`,
-        value: items.item.name + "|" + items.item.source,
-      };
-    });
+      const results = filteredChoices.map(item => ({
+        name: `${item.item.name} (${item.item.source})`,
+        value: `${item.item.name}|${item.item.source}`
+      }));
 
-    interaction.respond(results);
+      await interaction.respond(results);
+      
+    } catch (error) {
+      console.error('Autocomplete error:', error);
+    }
   }
-}
+};

@@ -20,7 +20,6 @@ const fuseOptions = {
 
 const fuse = new Fuse(itemsLists, fuseOptions)
 
-
 function itemsFilterNb(string, keep) {
   return itemsFilter(string).slice(0, keep);
 }

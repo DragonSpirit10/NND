@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, range } = require('discord.js');
 const { findItem } = require('./Filter/itemsFilter');
 
 function createItemEmbed(item, isReprint = false) {
@@ -51,23 +51,44 @@ function createEmbedFromObject(embedData) {
 }
 
 function generateDescription(item) {
-    let description = '';
-    const typeMap = {
-        "M": "Melee ", "R": "Ranged Weapon ", "A": "Ammunition ", "S": "Shield ",
-        "LA": "Light Armor ", "MA": "Medium Armor ", "HA": "Heavy Armor ", "G": "Gear ",
-        "GV": "Generic Variant ", "P": "Potion ", "SC": "Scroll ", "W": "Wondrous Item ",
-        "RD": "Rod ", "ST": "Staff ", "WD": "Wand ", "AT": "Artisan's Tools ",
-        "INS": "Instrument ", "T": "Trade Good ", "EXP": "Explosive ", "AF": "Ammunition ",
-        "EM": "Emblem ", "MNT": "Mount ", "VEH": "Vehicle ", "SHP": "Vehicle (Sailing Ship) ",
-        "SMP": "Vehicle (Simple Machine) ", "TG": "Tool "
-    };
-    if (item.type) description += typeMap[item.type.split("|")[0]] || "Unknown ";
-    if (item.weaponCategory) description += `${item.weaponCategory} weapon `;
-    if (item.staff) description += "Staff ";
-    if (item.wondrous) description += "Wondrous Item ";
-    if (item.rarity) description += (item.rarity === "None" ? "rarity Nan " : `${item.rarity} `);
-    if (item.reqAttune) description += `(${item.reqAttune ? 'Requires Attunement' : 'No Attunement Required'}) `;
-    return description;
+  const typeMap = {
+      M: "Melee", R: "Ranged Weapon", A: "Ammunition", S: "Shield",
+      LA: "Light Armor", MA: "Medium Armor", HA: "Heavy Armor", G: "Gear",
+      GV: "Generic Variant", P: "Potion", SC: "Scroll", W: "Wondrous Item",
+      RD: "Rod", ST: "Staff", WD: "Wand", AT: "Artisan's Tools",
+      INS: "Instrument", T: "Trade Good", EXP: "Explosive", AF: "Ammunition",
+      EM: "Emblem", MNT: "Mount", VEH: "Vehicle", SHP: "Vehicle (Sailing Ship)",
+      SMP: "Vehicle (Simple Machine)", TG: "Tool"
+  };
+
+  const propMap = {
+      A: item.range ? `ammunition (${item.range} ft.)` : "ammunition",
+      F: "finesse", L: "light", T: "thrown", H: "heavy",
+      LD: "loading", "2H": "two-handed", R: "reach",
+      V: "versatile", Vst: "Vestige"
+  };
+
+  let description = [];
+
+  if (item.type) description.push(typeMap[item.type.split("|")[0]] || "Unknown");
+  if (item.weaponCategory) description.push(`${item.weaponCategory} weapon`);
+  if (item.staff) description.push("Staff");
+  if (item.wondrous) description.push("Wondrous Item");
+  if (item.rarity) description.push(item.rarity === "None" ? "rarity Nan" : item.rarity);
+  if (item.reqAttune !== undefined) description.push(`(${item.reqAttune ? "Requires Attunement" : "No Attunement Required"})`);
+  
+  let details = [];
+  if (item.weight) details.push(`${item.weight} lb`);
+  if (item.dmg1 && item.dmgType) details.push(`${item.dmg1} ${item.dmgType}`);
+  if (item.properties) {
+      details.push(...item.properties.map(prop => propMap[prop.split("|")[0]]).filter(Boolean));
+  }
+  if (item.dmg2) details.push(`versatile (${item.dmg2})`);
+
+  description = description.join(", ");
+  details = details.join(" - ");
+ 
+  return description + "\n" + details;
 }
 
 function generateFields(item) {
@@ -75,14 +96,10 @@ function generateFields(item) {
       value: (item) => ({ name: 'Value', value: formatValue(item.value), inline: true }),
       ac: (item) => ({ name: 'Armor Class', value: `${item.ac}`, inline: true }),
       stealth: (item) => ({ name: 'Stealth Disadvantage', value: item.stealth ? 'Yes' : 'No', inline: true }),
-      weight: (item) => ({ name: 'Weight', value: `${item.weight} lb`, inline: true }),
       range: (item) => ({ name: 'Range', value: item.range, inline: true }),
-      damage: (item) => ({ name: 'Damage', value: item.damage, inline: true }),
       properties: (item) => ({ name: 'Properties', value: item.properties.join(', '), inline: true }),
       reqAttune: (item) => ({ name: 'Requires Attunement', value: item.reqAttune ? 'Yes' : 'No', inline: true }),
       bonusWeapon: (item) => ({ name: 'Attack Bonus', value: `${item.bonusWeapon}`, inline: true }),
-      dmg1: (item) => ({ name: 'Damage', value: `${item.dmg1} ${item.dmgType}`, inline: true }),
-      dmg2: (item) => ({ name: 'Versatile Damage', value: `${item.dmg2} ${item.dmgType}`, inline: true }),
       light: (item) => ({
           name: 'Light Emission',
           value: item.light.map(light => `Bright: ${light.bright} ft, Dim: ${light.dim} ft`).join('\n'),
@@ -170,7 +187,7 @@ function transformEntriesToEmbedFields(entries) {
           
           entry.entries.forEach(subEntry => {
               if (typeof subEntry === "string") {
-                  value += `- ${subEntry}\n`;
+                  value += `${subEntry}\n`;
               } else if (subEntry.type === "list" && Array.isArray(subEntry.items)) {
                   value += subEntry.items.map(item => `• ${item}`).join("\n") + "\n";
               }
@@ -180,6 +197,18 @@ function transformEntriesToEmbedFields(entries) {
       }
   }).filter(Boolean);
 }
+
+function transformEntriesToEmbedFieldsRecurcive(entries) {
+  if (entries.lenght === 0) return;
+
+  entries.map(entry => {
+    if (typeof entry === "string") {
+      return { name: "", value: entry, inline: false };
+    }
+  })
+
+}
+
 
 function getColorForRarity(rarity) {
   switch (rarity) {
@@ -196,6 +225,7 @@ function getColorForRarity(rarity) {
 
 module.exports = {
   createItemEmbed,
+  createEmbedObject,
 }
 
 function objToString (obj) {
