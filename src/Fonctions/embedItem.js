@@ -206,9 +206,7 @@ function transformEntriesToEmbedFieldsRecurcive(entries) {
       return { name: "", value: entry, inline: false };
     }
   })
-
 }
-
 
 function getColorForRarity(rarity) {
   switch (rarity) {

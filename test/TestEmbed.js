@@ -4,6 +4,6 @@ item = findItem("Sword of Kas|XDMG");
 
 const { createItemEmbed, createEmbedObject } = require("../src/Fonctions/embedItem");
 
-const embeds = createItemEmbed(item);
+const embedObj = createEmbedObject(item, false);
 
 console.log(embedObj);
