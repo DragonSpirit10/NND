@@ -197,7 +197,7 @@ function transformEntriesToEmbedFields(entries) {
       }
   }).filter(Boolean);
 }
-
+/* WIP
 function transformEntriesToEmbedFieldsRecurcive(entries) {
   if (entries.lenght === 0) return;
 
@@ -207,7 +207,7 @@ function transformEntriesToEmbedFieldsRecurcive(entries) {
     }
   })
 }
-
+*/
 function getColorForRarity(rarity) {
   switch (rarity) {
     case 'common': return 0xCFCFCF;
@@ -226,6 +226,9 @@ module.exports = {
   createEmbedObject,
 }
 
+/**
+ * Pour Dump un object en string pour debug
+ */
 function objToString (obj) {
   let str = '';
   for (const [p, val] of Object.entries(obj)) {
